@@ -1,6 +1,7 @@
 # homeassistant-hikvision_actions
 
 ## Project structure
+
 ```bash
 pip install cookiecutter
 mkdir custom_components
@@ -10,9 +11,9 @@ cd ..
 ```
 
 ```bash
-You've downloaded /home/johna/.cookiecutters/cookiecutter-homeassistant-component before. Is it okay to delete and re-download it? 
+You've downloaded /home/johna/.cookiecutters/cookiecutter-homeassistant-component before. Is it okay to delete and re-download it?
 [y/n] (y): y
-  [1/7] domain (my_component): homeassistant-hikvision_actions                                             
+  [1/7] domain (my_component): homeassistant-hikvision_actions
   [2/7] name (My Component): homeassistant-hikvision_actions
   [3/7] docs_url (https://github.com/user/my_component/): https://github.com/jajera/homeassistant-hikvision_actions
   [4/7] owner (@user): @jajera
@@ -54,7 +55,8 @@ RUN apt-get install -y --no-install-recommends \
         libyaml-dev \
         libxml2 \
         git \
-        cmake
+        cmake \
+        pip install --upgrade pip
 
 WORKDIR /workspaces
 

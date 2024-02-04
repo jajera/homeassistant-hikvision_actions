@@ -15,7 +15,8 @@ RUN apt-get install -y --no-install-recommends \
         libyaml-dev \
         libxml2 \
         git \
-        cmake
+        cmake \
+        pip install --upgrade pip
 
 WORKDIR /workspaces
 
