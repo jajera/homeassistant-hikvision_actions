@@ -1,22 +1,7 @@
-FROM mcr.microsoft.com/vscode/devcontainers/python:0-3.11
+FROM mcr.microsoft.com/devcontainers/python:1-3.11-bullseye
 
-SHELL ["/bin/bash", "-o", "pipefail", "-c"]
-
-# Uninstall pre-installed formatting and linting tools
-# They would conflict with our pinned versions
-RUN \
-    pipx uninstall pydocstyle \
-    && pipx uninstall pycodestyle \
-    && pipx uninstall mypy \
-    && pipx uninstall pylint
-
-RUN \
-    curl -sS https://dl.yarnpkg.com/debian/pubkey.gpg | apt-key add - \
-    && apt-get update \
-    && DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
-        # Additional library needed by some tests and accordingly by VScode Tests Discovery
-        bluez \
-        ffmpeg \
+RUN apt-get update
+RUN apt-get install -y --no-install-recommends \
         libudev-dev \
         libavformat-dev \
         libavcodec-dev \
@@ -30,25 +15,16 @@ RUN \
         libyaml-dev \
         libxml2 \
         git \
-        cmake \
-    && apt-get clean \
-    && rm -rf /var/lib/apt/lists/*
-
-WORKDIR /usr/src
-
-# Setup hass-release
-RUN git clone --depth 1 https://github.com/home-assistant/hass-release \
-    && pip3 install -e hass-release/
+        cmake
 
 WORKDIR /workspaces
 
 # Install Python dependencies from requirements
 COPY requirements_dev.txt ./
-COPY homeassistant/package_constraints.txt homeassistant/package_constraints.txt
 RUN pip3 install -r requirements_dev.txt
-COPY requirements_test.txt requirements_test_pre_commit.txt ./
+COPY requirements_test.txt ./
 RUN pip3 install -r requirements_test.txt
-RUN rm -rf requirements_test.txt requirements_test_pre_commit.txt homeassistant/
+RUN rm -rf requirements_dev.txt requirements_test.txt
 
 # Set the default shell to bash instead of sh
 ENV SHELL /bin/bash
