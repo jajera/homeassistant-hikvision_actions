@@ -56,7 +56,7 @@ RUN apt-get install -y --no-install-recommends \
         libxml2 \
         git \
         cmake \
-        pip install --upgrade pip
+        && pip install --upgrade pip
 
 WORKDIR /workspaces
 
