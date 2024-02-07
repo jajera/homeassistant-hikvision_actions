@@ -38,10 +38,22 @@ touch .devcontainer/Dockerfile
 ```
 
 ```bash
-echo 'FROM mcr.microsoft.com/devcontainers/python:1-3.11-bullseye
+echo 'FROM mcr.microsoft.com/vscode/devcontainers/python:0-3.11
 
-RUN apt-get update
-RUN apt-get install -y --no-install-recommends \
+SHELL ["/bin/bash", "-o", "pipefail", "-c"]
+
+RUN \
+    pipx uninstall pydocstyle \
+    && pipx uninstall pycodestyle \
+    && pipx uninstall mypy \
+    && pipx uninstall pylint
+
+RUN \
+    curl -sS https://dl.yarnpkg.com/debian/pubkey.gpg | apt-key add - \
+    && apt-get update \
+    && DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
+        bluez \
+        ffmpeg \
         libudev-dev \
         libavformat-dev \
         libavcodec-dev \
@@ -56,18 +68,23 @@ RUN apt-get install -y --no-install-recommends \
         libxml2 \
         git \
         cmake \
-        && pip install --upgrade pip
+    && apt-get clean \
+    && rm -rf /var/lib/apt/lists/*
+
+WORKDIR /usr/src
+
+RUN git clone --depth 1 https://github.com/home-assistant/hass-release \
+    && pip3 install -e hass-release/
 
 WORKDIR /workspaces
 
-# Install Python dependencies from requirements
-COPY requirements_dev.txt ./
-RUN pip3 install -r requirements_dev.txt
-COPY requirements_test.txt ./
+COPY requirements.txt ./
+COPY homeassistant/package_constraints.txt homeassistant/package_constraints.txt
+RUN pip3 install -r requirements.txt
+COPY requirements_test.txt requirements_test_pre_commit.txt ./
 RUN pip3 install -r requirements_test.txt
-RUN rm -rf requirements_dev.txt requirements_test.txt
+RUN rm -rf requirements.txt requirements_test.txt requirements_test_pre_commit.txt homeassistant/
 
-# Set the default shell to bash instead of sh
 ENV SHELL /bin/bash' > .devcontainer/Dockerfile
 ```
 
@@ -76,10 +93,11 @@ echo '{
   "name": "Home Assistant Dev",
   "context": "..",
   "dockerFile": "Dockerfile",
-  "postCreateCommand": "pip install -r requirements_dev.txt",
+  // "postCreateCommand": "container setup && npm add",
   "containerEnv": { "DEVCONTAINER": "1" },
-  // Port 5683 udp is used by Shelly integration
   "appPort": ["8123:8123", "5683:5683/udp"],
+  "containerUser": "vscode",
+  "remoteUser": "vscode",
   "runArgs": ["-e", "GIT_EDITOR=code --wait"],
   "customizations": {
     "vscode": {
@@ -90,9 +108,9 @@ echo '{
         "visualstudioexptteam.vscodeintellicode",
         "redhat.vscode-yaml",
         "esbenp.prettier-vscode",
-        "GitHub.vscode-pull-request-github"
+        "GitHub.vscode-pull-request-github",
+        "ms-azuretools.vscode-docker"
       ],
-      // Please keep this file in sync with settings in home-assistant/.vscode/settings.default.json
       "settings": {
         "python.pythonPath": "/usr/local/bin/python",
         "python.testing.pytestArgs": ["--no-cov"],
@@ -128,12 +146,12 @@ echo 'homeassistant==2024.1.6
 pre-commit==3.3.3
 reorder-python-imports==3.10.0
 flake8==6.1.0
-autoflake==2.2.1' > requirements_dev.txt
+autoflake==2.2.1' > requirements.txt
 ```
 
 ```bash
 echo 'pytest
--r requirements_dev.txt
+-r requirements.txt
 pytest-homeassistant-custom-component
 pytest-asyncio' > requirements_test.txt
 ```

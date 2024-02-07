@@ -1,0 +1,58 @@
+FROM mcr.microsoft.com/vscode/devcontainers/python:0-3.11
+
+SHELL ["/bin/bash", "-o", "pipefail", "-c"]
+
+RUN \
+    pipx uninstall pydocstyle \
+    && pipx uninstall pycodestyle \
+    && pipx uninstall mypy \
+    && pipx uninstall pylint
+
+RUN \
+    curl -sS https://dl.yarnpkg.com/debian/pubkey.gpg | apt-key add - \
+    && apt-get update \
+    && DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
+    bluez \
+    cmake \
+    ffmpeg \
+    git \
+    libavcodec-dev \
+    libavdevice-dev \
+    libavfilter-dev \
+    libavformat-dev \
+    libavutil-dev \
+    libpcap-dev \
+    libswresample-dev \
+    libswscale-dev \
+    libturbojpeg0 \
+    libudev-dev \
+    libxml2 \
+    libyaml-dev \
+    tree \
+    && apt-get clean \
+    && rm -rf /var/lib/apt/lists/*
+
+WORKDIR /usr/src
+
+RUN git clone --depth 1 https://github.com/home-assistant/hass-release \
+    && pip3 install -e hass-release/
+
+WORKDIR /workspaces
+
+COPY . ./
+# COPY \
+#     requirements.txt \
+#     homeassistant/package_constraints.txt \
+#     requirements_test.txt \
+#     requirements_test_pre_commit.txt \
+#     script/bootstrap \
+#     script/setup \
+#     /workspaces/
+RUN \
+    pip3 install -r requirements.txt \
+    && pip3 install -r requirements_test.txt \
+    #     && rm -rf requirements.txt requirements_test.txt requirements_test_pre_commit.txt homeassistant/ \
+    #     && chown -R $(id -u vscode):$(id -g vscode) /workspaces \
+    && chmod +x script/setup \
+    && chmod +x script/bootstrap
+ENV SHELL /bin/bash
