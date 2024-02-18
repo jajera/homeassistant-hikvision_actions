@@ -2,6 +2,8 @@
   "recommendations": [
     "charliermarsh.ruff",
     "esbenp.prettier-vscode",
-    "ms-python.python"
+    "ms-python.python",
+    "ms-python.vscode-pylance",
+    "redhat.vscode-yaml"
   ]
 }
